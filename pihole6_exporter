@@ -7,28 +7,10 @@ import urllib3
 from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
 from prometheus_client import start_http_server
 
-# Thanks https://stackoverflow.com/a/12507546 for the generator idea!
-# This recursively iterates through dicts.  Very handy for the task at hand.
-
-def dict_generator(indict, pre=None):
-    pre = pre[:] if pre else []
-    if isinstance(indict, dict):
-        for key, value in indict.items():
-            if isinstance(value, dict):
-                for d in dict_generator(value, pre + [key]):
-                    yield d
-            elif isinstance(value, list) or isinstance(value, tuple):
-                for v in value:
-                    for d in dict_generator(v, pre + [key]):
-                        yield d
-            else:
-                yield pre + [key, value]
-    else:
-        yield pre + [indict]
-
 class PiholeCollector(object):
 
     def __init__(self):
+        # Disable if you've actually got a good cert set up.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def collect(self):
@@ -39,7 +21,7 @@ class PiholeCollector(object):
 
         reply = json.loads(req.text)
 
-        query_types = GaugeMetricFamily("pihole_query_by_type",
+        query_types = GaugeMetricFamily("pihole_query_by_type_24h",
                 "Count of queries by type over 24h", labels=["query_type"])
 
         for item in reply["queries"]["types"].items():
@@ -68,6 +50,37 @@ class PiholeCollector(object):
             reply_types.add_metric(labels, value)
 
         yield reply_types
+
+        total_counts = GaugeMetricFamily("pihole_query_count",
+                "Query counts by category, whole database", labels=["category"])
+        
+        total_counts.add_metric(["total"], reply["queries"]["total"])
+        total_counts.add_metric(["blocked"], reply["queries"]["blocked"])
+        total_counts.add_metric(["unique"], reply["queries"]["unique_domains"])
+        total_counts.add_metric(["forwarded"], reply["queries"]["forwarded"])
+        total_counts.add_metric(["cached"], reply["queries"]["cached"])
+
+        yield total_counts
+
+        # Yes, I skipped percent_blocked.  We can calculate that in Grafana.
+        # Better to not provide data that can be derived from other data.
+
+        clients = GaugeMetricFamily("pihole_client_count",
+                "Total/active client counts", labels=["category"])
+        
+        clients.add_metric(["active"], reply["clients"]["active"])
+        clients.add_metric(["total"], reply["clients"]["total"])
+
+        yield clients
+
+        gravity = GaugeMetricFamily("pihole_domains_being_blocked",
+                "Number of domains on current blocklist", labels=[])
+        
+        gravity.add_metric([], reply["gravity"]["domains_being_blocked"])
+
+        yield gravity
+        
+        
         
 
 if __name__ == '__main__':
