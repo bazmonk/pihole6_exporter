@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+import time
+import requests
+import json
+import urllib3
+from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
+from prometheus_client import start_http_server
+
+# Thanks https://stackoverflow.com/a/12507546 for the generator idea!
+# This recursively iterates through dicts.  Very handy for the task at hand.
+
+def dict_generator(indict, pre=None):
+    pre = pre[:] if pre else []
+    if isinstance(indict, dict):
+        for key, value in indict.items():
+            if isinstance(value, dict):
+                for d in dict_generator(value, pre + [key]):
+                    yield d
+            elif isinstance(value, list) or isinstance(value, tuple):
+                for v in value:
+                    for d in dict_generator(v, pre + [key]):
+                        yield d
+            else:
+                yield pre + [key, value]
+    else:
+        yield pre + [indict]
+
+class PiholeCollector(object):
+
+    def __init__(self):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    def collect(self):
+
+        summary_url = "https://localhost:443/api/stats/summary"
+        req = requests.get(summary_url, verify = False,
+                           headers = {"accept": "application/json"})
+
+        reply = json.loads(req.text)
+
+        query_types = GaugeMetricFamily("pihole_query_by_type",
+                "Count of queries by type over 24h", labels=["query_type"])
+
+        for item in reply["queries"]["types"].items():
+            labels = [item[0]]
+            value = item[1]
+            query_types.add_metric(labels, value)
+
+        yield query_types
+
+        status_types = GaugeMetricFamily("pihole_query_by_status_24h",
+                "Count of queries by status over 24h", labels=["query_status"])
+
+        for item in reply["queries"]["status"].items():
+            labels = [item[0]]
+            value = item[1]
+            status_types.add_metric(labels, value)
+
+        yield status_types
+
+        reply_types = GaugeMetricFamily("pihole_query_replies_24h",
+                "Count of replies by type over 24h", labels=["reply_type"])
+
+        for item in reply["queries"]["replies"].items():
+            labels = [item[0]]
+            value = item[1]
+            reply_types.add_metric(labels, value)
+
+        yield reply_types
+        
+
+if __name__ == '__main__':
+    start_http_server(9666)
+    REGISTRY.register(PiholeCollector())
+    while True:
+        time.sleep(1)
+
