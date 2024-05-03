@@ -78,7 +78,24 @@ class PiholeCollector(object):
         
         gravity.add_metric([], reply["gravity"]["domains_being_blocked"])
 
-        yield gravity   
+        yield gravity
+
+
+        summary_url = "https://localhost:443/api/stats/upstreams"
+        req = requests.get(summary_url, verify = False,
+                           headers = {"accept": "application/json"})
+
+        reply = json.loads(req.text)
+        
+        upstreams = GaugeMetricFamily("pihole_query_upstream_count",
+                "Total query upstream counts (24h)", labels=["ip", "name", "port"])
+
+        for item in reply["upstreams"].items():
+            labels = [item["ip"], item["name"], item["port"]]
+            value = item["count"]
+            upstreams.add_metric(labels, value)
+
+        yield upstreams
         
 
 if __name__ == '__main__':
