@@ -1,0 +1,12 @@
+[Unit]
+Description=Pihole 6 Prometheus Exporter
+After=pihole-FTL.service
+
+[Service]
+ExecStart=/usr/local/bin/pihole6_exporter
+Type=exec
+Restart=always
+
+
+[Install]
+WantedBy=default.target
