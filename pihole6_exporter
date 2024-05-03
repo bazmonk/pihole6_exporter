@@ -90,8 +90,8 @@ class PiholeCollector(object):
         upstreams = GaugeMetricFamily("pihole_query_upstream_count",
                 "Total query upstream counts (24h)", labels=["ip", "name", "port"])
 
-        for item in reply["upstreams"].items():
-            labels = [item["ip"], item["name"], item["port"]]
+        for item in reply["upstreams"]:
+            labels = [item["ip"], item["name"], str(item["port"])]
             value = item["count"]
             upstreams.add_metric(labels, value)
 
