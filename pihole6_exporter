@@ -31,7 +31,7 @@ class PiholeCollector(object):
 
         yield query_types
 
-        status_types = GaugeMetricFamily("pihole_query_by_status_24h",
+        status_types = GaugeMetricFamily("pihole_query_by_status",
                 "Count of queries by status over 24h", labels=["query_status"])
 
         for item in reply["queries"]["status"].items():
@@ -41,7 +41,7 @@ class PiholeCollector(object):
 
         yield status_types
 
-        reply_types = GaugeMetricFamily("pihole_query_replies_24h",
+        reply_types = GaugeMetricFamily("pihole_query_replies",
                 "Count of replies by type over 24h", labels=["reply_type"])
 
         for item in reply["queries"]["replies"].items():
