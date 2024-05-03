@@ -21,8 +21,8 @@ class PiholeCollector(object):
 
         reply = json.loads(req.text)
 
-        query_types = GaugeMetricFamily("pihole_query_by_type_24h",
-                "Count of queries by type over 24h", labels=["query_type"])
+        query_types = GaugeMetricFamily("pihole_query_by_type",
+                "Count of queries by type (24h)", labels=["query_type"])
 
         for item in reply["queries"]["types"].items():
             labels = [item[0]]
@@ -52,7 +52,7 @@ class PiholeCollector(object):
         yield reply_types
 
         total_counts = GaugeMetricFamily("pihole_query_count",
-                "Query counts by category, whole database", labels=["category"])
+                "Query counts by category, 24h", labels=["category"])
         
         total_counts.add_metric(["total"], reply["queries"]["total"])
         total_counts.add_metric(["blocked"], reply["queries"]["blocked"])
@@ -78,9 +78,7 @@ class PiholeCollector(object):
         
         gravity.add_metric([], reply["gravity"]["domains_being_blocked"])
 
-        yield gravity
-        
-        
+        yield gravity   
         
 
 if __name__ == '__main__':
