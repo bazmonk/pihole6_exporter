@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
 import requests
 import json
 import urllib3
+import argparse
 from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
 from prometheus_client import start_http_server
 
@@ -99,6 +100,12 @@ class PiholeCollector(object):
         
 
 if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
+
+    parser.add_argument("-p", "--port", dest="port", type=int, required=False, help="port to expose for scraping (default 9666)", default=9666)
+    args = parser.parse_args()
+    
     start_http_server(9666)
     REGISTRY.register(PiholeCollector())
     while True:
