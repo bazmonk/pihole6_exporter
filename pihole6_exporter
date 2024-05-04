@@ -104,9 +104,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
 
     parser.add_argument("-p", "--port", dest="port", type=int, required=False, help="port to expose for scraping (default 9666)", default=9666)
+    parser.add_argument("-k", "--key", dest="key", type=str, required=False, help="authentication token (if required locally)", default=None)
+
     args = parser.parse_args()
-    
-    start_http_server(9666)
+
+    start_http_server(args.port)
     REGISTRY.register(PiholeCollector())
     while True:
         time.sleep(1)
