@@ -28,19 +28,18 @@ class PiholeCollector(object):
         json_data = {"password": key}
         req = requests.post(auth_url, verify = False, headers = headers, json = json_data)
         
-        reply = json.loads(req.text)
+        reply = req.json()
         return reply['session']['sid']
 
     def collect(self):
 
         summary_url = "https://" + self.host + ":443/api/stats/summary"
         if self.using_auth:
-            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
-                                                                       "sid": self.sid})
+            headers = {"accept": "application/json", "sid": self.sid}
         else:
-            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
-
-        reply = json.loads(req.text)
+            headers = {"accept": "application/json"}
+        req = requests.get(summary_url, verify = False, headers = headers)
+        reply = req.json()
 
         query_types = GaugeMetricFamily("pihole_query_by_type",
                 "Count of queries by type (24h)", labels=["query_type"])
@@ -104,12 +103,12 @@ class PiholeCollector(object):
 
         summary_url = "https://" + self.host + ":443/api/stats/upstreams"
         if self.using_auth:
-            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
-                                                                       "sid": self.sid})
+            headers = {"accept": "application/json", "sid": self.sid}
         else:
-            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
+            headers = {"accept": "application/json"}
+        req = requests.get(summary_url, verify = False, headers = headers)
 
-        reply = json.loads(req.text)
+        reply = req.json()
         
         upstreams = GaugeMetricFamily("pihole_query_upstream_count",
                 "Total query upstream counts (24h)", labels=["ip", "name", "port"])
@@ -128,7 +127,7 @@ if __name__ == '__main__':
 
     parser.add_argument("-H", "--host", dest="host", type=str, required=False, help="hostname/ip of pihole instance (default localhost)", default="localhost")
     parser.add_argument("-p", "--port", dest="port", type=int, required=False, help="port to expose for scraping (default 9666)", default=9666)
-    parser.add_argument("-k", "--key", dest="key", type=str, required=False, help="authentication token (if required locally)", default=None)
+    parser.add_argument("-k", "--key", dest="key", type=str, required=False, help="authentication token (if required)", default=None)
 
     args = parser.parse_args()
 
