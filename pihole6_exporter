@@ -34,7 +34,7 @@ class PiholeCollector(object):
         summary_url = "https://localhost:443/api/stats/summary"
         if self.using_auth:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
-                                                                       "sid": self.key})
+                                                                       "sid": self.sid})
         else:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
 
@@ -103,7 +103,7 @@ class PiholeCollector(object):
         summary_url = "https://localhost:443/api/stats/upstreams"
         if self.using_auth:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
-                                                                       "sid": self.key})
+                                                                       "sid": self.sid})
         else:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
 
