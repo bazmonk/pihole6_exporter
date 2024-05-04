@@ -10,18 +10,20 @@ from prometheus_client import start_http_server
 
 class PiholeCollector(object):
 
-    def __init__(self, key=None):
+    def __init__(self, host="localhost", key=None):
 
         self.using_auth = False
         # Disable if you've actually got a good cert set up.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        self.host = host
 
         if key is not None:
             self.using_auth = True
             self.sid = self.get_sid(key)
 
     def get_sid(self, key):
-        auth_url = "https://localhost:443/api/auth"
+        auth_url = "https://" + self.host + ":443/api/auth"
         headers = {"accept": "application/json", "content_type": "application/json"}
         json_data = {"password": key}
         req = requests.post(auth_url, verify = False, headers = headers, json = json_data)
@@ -31,7 +33,7 @@ class PiholeCollector(object):
 
     def collect(self):
 
-        summary_url = "https://localhost:443/api/stats/summary"
+        summary_url = "https://" + self.host + ":443/api/stats/summary"
         if self.using_auth:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
                                                                        "sid": self.sid})
@@ -100,7 +102,7 @@ class PiholeCollector(object):
         yield gravity
 
 
-        summary_url = "https://localhost:443/api/stats/upstreams"
+        summary_url = "https://" + self.host + ":443/api/stats/upstreams"
         if self.using_auth:
             req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
                                                                        "sid": self.sid})
@@ -124,13 +126,14 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
 
+    parser.add_argument("-H", "--host", dest="host", type=str, required=False, help="hostname/ip of pihole instance (default localhost)", default="localhost")
     parser.add_argument("-p", "--port", dest="port", type=int, required=False, help="port to expose for scraping (default 9666)", default=9666)
     parser.add_argument("-k", "--key", dest="key", type=str, required=False, help="authentication token (if required locally)", default=None)
 
     args = parser.parse_args()
 
     start_http_server(args.port)
-    REGISTRY.register(PiholeCollector(args.key))
+    REGISTRY.register(PiholeCollector(args.host, args.key))
     while True:
         time.sleep(1)
 
