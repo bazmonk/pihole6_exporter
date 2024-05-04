@@ -10,15 +10,33 @@ from prometheus_client import start_http_server
 
 class PiholeCollector(object):
 
-    def __init__(self):
+    def __init__(self, key=None):
+
+        self.using_auth = False
         # Disable if you've actually got a good cert set up.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        if key is not None:
+            self.using_auth = True
+            self.sid = self.get_sid(key)
+
+    def get_sid(self, key):
+        auth_url = "https://localhost:443/api/auth"
+        headers = {"accept": "application/json", "content_type": "application/json"}
+        json_data = {"password": key}
+        req = requests.post(auth_url, verify = False, headers = headers, json = json_data)
+        
+        reply = json.loads(req.text)
+        return reply['session']['sid']
 
     def collect(self):
 
         summary_url = "https://localhost:443/api/stats/summary"
-        req = requests.get(summary_url, verify = False,
-                           headers = {"accept": "application/json"})
+        if self.using_auth:
+            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
+                                                                       "sid": self.key})
+        else:
+            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
 
         reply = json.loads(req.text)
 
@@ -83,8 +101,11 @@ class PiholeCollector(object):
 
 
         summary_url = "https://localhost:443/api/stats/upstreams"
-        req = requests.get(summary_url, verify = False,
-                           headers = {"accept": "application/json"})
+        if self.using_auth:
+            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json",
+                                                                       "sid": self.key})
+        else:
+            req = requests.get(summary_url, verify = False, headers = {"accept": "application/json"})
 
         reply = json.loads(req.text)
         
@@ -109,7 +130,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     start_http_server(args.port)
-    REGISTRY.register(PiholeCollector())
+    REGISTRY.register(PiholeCollector(args.key))
     while True:
         time.sleep(1)
 
