@@ -1,6 +1,6 @@
-# pihole6_exporter - A prometheus-style exporter for Pi-hole v6
+# pihole6_exporter: A Prometheus-style Exporter for Pi-hole ver. 6
 
-This is a basic prometheus exporter for the new API in Pi-hole version 6.
+This is a basic prometheus exporter for the new API in Pi-hole version 6, currently in beta.
 
 ## Running
 
