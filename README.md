@@ -35,28 +35,18 @@ The session ID should stay active as long as it is used at least every 5 minutes
 
 ## Metrics Provided
 
-| Metric | Description |
-|--------|-------------|
-| `pihole_query_by_type`
+All metrics derive from the `/stats/summary` and `/stats/upstreams` API calls, minus a few stats which can be derived from these metrics (e.g. the % of domains blocked).
 
-# HELP pihole_query_by_type Count of queries by type (24h)
-# TYPE pihole_query_by_type gauge
-pihole_query_by_type
-# HELP pihole_query_by_status Count of queries by status over 24h
-# TYPE pihole_query_by_status gauge
-pihole_query_by_status
-# HELP pihole_query_replies Count of replies by type over 24h
-# TYPE pihole_query_replies gauge
-pihole_query_replies
-# HELP pihole_query_count Query counts by category, 24h
-# TYPE pihole_query_count gauge
-pihole_query_count
-# HELP pihole_client_count Total/active client counts
-# TYPE pihole_client_count gauge
-pihole_client_count
-# HELP pihole_domains_being_blocked Number of domains on current blocklist
-# TYPE pihole_domains_being_blocked gauge
-pihole_domains_being_blocked 128537.0
-# HELP pihole_query_upstream_count Total query upstream counts (24h)
-# TYPE pihole_query_upstream_count gauge
-pihole_query_upstream_count
+| Metric | Description | Labels |
+|--------|-------------|--------|
+| `pihole_query_by_type` | Count of queries by type over the last 24h | `query_type` (A, AAAA, SOA, etc.) |
+| `pihole_query_by_status` | Count of queries by status over the last 24h | `query_status` (FORWARDED, CACHE, GRAVITY, etc.) |
+| `pihole_query_replies` | Count of query replies by type over the last 24h | `reply_type` (CNAME, IP, NXDOMAIN, etc.) |
+| `pihole_query_count` | Query count totals over last 24h | `category` (total, blocked, unique, forwarded, cached) |
+| `pihole_client_count` | Count of total/active clients | `category` (active, total) |
+| `pihole_domains_being_blocked` | Number of domains being blocked | *None* |
+| `pihole_query_upstream_count` | Counts of total queries in the last 24h by upstream destination | `ip`, `port`, `name` |
+
+## Questions/Comments?
+
+Please open a git issue here.  I can't promise a particular reponse time but I'll do my best.
