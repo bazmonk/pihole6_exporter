@@ -2,10 +2,10 @@
 
 import time
 import requests
-import json
 import urllib3
 import argparse
-from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
+from datetime import datetime
+from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client import start_http_server
 
 class PiholeCollector(object):
@@ -32,6 +32,8 @@ class PiholeCollector(object):
         return reply['session']['sid']
 
     def collect(self):
+
+        print("Beginning Scrape...")
 
         summary_url = "https://" + self.host + ":443/api/stats/summary"
         if self.using_auth:
@@ -119,6 +121,72 @@ class PiholeCollector(object):
             upstreams.add_metric(labels, value)
 
         yield upstreams
+
+        now = datetime.now().strftime("%s")
+        last_min = int(now) // 60 * 60
+        min_before = last_min - 60
+
+        query_url = "https://" + self.host + ":443/api/queries?from=" + str(min_before) + "&until=" + str(last_min)
+        if self.using_auth:
+            headers = {"accept": "application/json", "sid": self.sid}
+        else:
+            headers = {"accept": "application/json"}
+        req = requests.get(query_url, verify = False, headers = headers)
+
+        reply = req.json()
+
+        type_cnt = {}
+        status_cnt = {}
+        reply_cnt = {}
+        client_cnt = {}
+
+        for q in reply["queries"]:
+            type = q["type"]
+            status = q["status"]
+            replytype = q["reply"]["type"]
+            client = q["client"]["ip"]
+
+            if type in type_cnt: type_cnt[type] += 1
+            else: type_cnt[type] = 1
+
+            if status in status_cnt: status_cnt[status] += 1
+            else: status_cnt[status] = 1
+
+            if replytype in reply_cnt: reply_cnt[replytype] += 1
+            else: reply_cnt[replytype] = 1
+
+            if client in client_cnt: client_cnt[client] += 1
+            else: client_cnt[client] = 1
+
+        q_type = GaugeMetricFamily("pihole_query_type_1m", "Count of query types (last whole 1m)",
+                                   labels=["query_type"])
+        for t in type_cnt.items():
+            q_type.add_metric([t[0]], t[1], last_min)
+
+        yield q_type
+
+        q_status = GaugeMetricFamily("pihole_query_status_1m", "Count of query status (last whole 1m)",
+                                   labels=["query_status"])
+        for s in status_cnt.items():
+            q_status.add_metric([s[0]], s[1], last_min)
+
+        yield q_status
+
+        q_reply = GaugeMetricFamily("pihole_query_reply_1m", "Count of query reply types (last whole 1m)",
+                                   labels=["query_reply"])
+        for r in reply_cnt.items():
+            q_reply.add_metric([r[0]], r[1], last_min)
+
+        yield q_reply
+
+        q_client = GaugeMetricFamily("pihole_query_client_1m", "Count of query clients (last whole 1m)",
+                                   labels=["query_client"])
+        for c in client_cnt.items():
+            q_client.add_metric([c[0]], c[1], last_min)
+
+        yield q_client
+
+        print("Scrape Completed")
         
 
 if __name__ == '__main__':
