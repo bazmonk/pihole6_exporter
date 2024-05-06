@@ -4,6 +4,7 @@ import time
 import requests
 import urllib3
 import argparse
+import logging
 from datetime import datetime
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client import start_http_server
@@ -33,7 +34,7 @@ class PiholeCollector(object):
 
     def collect(self):
 
-        print("Beginning Scrape...")
+        logging.info("beginning scrape...")
 
         summary_url = "https://" + self.host + ":443/api/stats/summary"
         if self.using_auth:
@@ -186,11 +187,13 @@ class PiholeCollector(object):
 
         yield q_client
 
-        print("Scrape Completed")
+        logging.info("scrape completed")
         
 
 if __name__ == '__main__':
     
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
     parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
 
     parser.add_argument("-H", "--host", dest="host", type=str, required=False, help="hostname/ip of pihole instance (default localhost)", default="localhost")
@@ -200,7 +203,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     start_http_server(args.port)
+    logging.info("Exporter HTTP endpoint started")
+
     REGISTRY.register(PiholeCollector(args.host, args.key))
+    logging.info("Ready to collect data")
     while True:
         time.sleep(1)
 
