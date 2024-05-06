@@ -140,12 +140,14 @@ class PiholeCollector(object):
         status_cnt = {}
         reply_cnt = {}
         client_cnt = {}
+        upstream_cnt = {}
 
         for q in reply["queries"]:
             type = q["type"]
             status = q["status"]
             replytype = q["reply"]["type"]
             client = q["client"]["ip"]
+            upstream = q["upstream"]
 
             if type in type_cnt: type_cnt[type] += 1
             else: type_cnt[type] = 1
@@ -158,6 +160,9 @@ class PiholeCollector(object):
 
             if client in client_cnt: client_cnt[client] += 1
             else: client_cnt[client] = 1
+
+            if upstream in upstream_cnt: upstream_cnt[upstream] += 1
+            else: upstream_cnt[upstream] = 1
 
         q_type = GaugeMetricFamily("pihole_query_type_1m", "Count of query types (last whole 1m)",
                                    labels=["query_type"])
@@ -186,6 +191,13 @@ class PiholeCollector(object):
             q_client.add_metric([c[0]], c[1], last_min)
 
         yield q_client
+
+        q_up = GaugeMetricFamily("pihole_query_upstream_1m", "Count of query upstream destinations (last whole 1m)",
+                                   labels=["query_upstream"])
+        for u in upstream_cnt.items():
+            q_up.add_metric([u[0]], u[1], last_min)
+
+        yield q_up
 
         logging.info("scrape completed")
         
