@@ -192,7 +192,7 @@ class PiholeCollector(object):
 
 if __name__ == '__main__':
     
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(format='level="%(levelname)s" message="%(message)s"', level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
 
