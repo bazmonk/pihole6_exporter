@@ -124,8 +124,8 @@ class PiholeCollector(object):
         yield upstreams
 
         now = datetime.now().strftime("%s")
-        last_min = int(now) // 60 * 60 - 1
-        min_before = last_min + 1 - 60
+        last_min = int(now) // 60 * 60
+        min_before = last_min - 60
 
         query_url = "https://" + self.host + ":443/api/queries?from=" + str(min_before) + "&until=" + str(last_min)
         if self.using_auth:
