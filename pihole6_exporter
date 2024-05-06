@@ -195,7 +195,7 @@ class PiholeCollector(object):
         q_up = GaugeMetricFamily("pihole_query_upstream_1m", "Count of query upstream destinations (last whole 1m)",
                                    labels=["query_upstream"])
         for u in upstream_cnt.items():
-            q_up.add_metric([u[0]], u[1], last_min)
+            q_up.add_metric([u[0]], str(u[1]), last_min)
 
         yield q_up
 
