@@ -167,35 +167,35 @@ class PiholeCollector(object):
         q_type = GaugeMetricFamily("pihole_query_type_1m", "Count of query types (last whole 1m)",
                                    labels=["query_type"])
         for t in type_cnt.items():
-            q_type.add_metric([t[0]], t[1])
+            q_type.add_metric([t[0]], t[1], last_min)
 
         yield q_type
 
         q_status = GaugeMetricFamily("pihole_query_status_1m", "Count of query status (last whole 1m)",
                                    labels=["query_status"])
         for s in status_cnt.items():
-            q_status.add_metric([s[0]], s[1])
+            q_status.add_metric([s[0]], s[1], last_min)
 
         yield q_status
 
         q_reply = GaugeMetricFamily("pihole_query_reply_1m", "Count of query reply types (last whole 1m)",
                                    labels=["query_reply"])
         for r in reply_cnt.items():
-            q_reply.add_metric([r[0]], r[1])
+            q_reply.add_metric([r[0]], r[1], last_min)
 
         yield q_reply
 
         q_client = GaugeMetricFamily("pihole_query_client_1m", "Count of query clients (last whole 1m)",
                                    labels=["query_client"])
         for c in client_cnt.items():
-            q_client.add_metric([c[0]], c[1])
+            q_client.add_metric([c[0]], c[1], last_min)
 
         yield q_client
 
         q_up = GaugeMetricFamily("pihole_query_upstream_1m", "Count of query upstream destinations (last whole 1m)",
                                    labels=["query_upstream"])
         for u in upstream_cnt.items():
-            q_up.add_metric([str(u[0])], u[1])
+            q_up.add_metric([str(u[0])], u[1], last_min)
 
         yield q_up
 
