@@ -48,6 +48,11 @@ All metrics derive from the `/stats/summary` and `/stats/upstreams` API calls, m
 | `pihole_client_count` | Count of total/active clients | `category` (active, total) |
 | `pihole_domains_being_blocked` | Number of domains being blocked | *None* |
 | `pihole_query_upstream_count` | Counts of total queries in the last 24h by upstream destination | `ip`, `port`, `name` |
+| `pihole_query_type_1m` | Per-1m count of queries by type | `query_type` |
+| `pihole_query_status_1m` | Per-1m count of queries by status | `query_status` |
+| `pihole_query_upstream_1m` | Per-1m count of queries by upstream destination | `query_upstream` |
+| `pihole_query_reply_1m` | Per-1m count of queries by reply | `query_reply` |
+| `pihole_query_client_1m` | Per-1m count of queries by client |  `query_client` |
 
 ## Questions/Comments?
 
