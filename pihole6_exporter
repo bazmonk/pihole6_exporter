@@ -149,35 +149,35 @@ class PiholeCollector(object):
         reply = req.json()
 
         keys = self.type_cnt.keys()
-        for k in keys:
+        for k in list(keys):
             if self.type_cnt[k] != 0:
                 self.type_cnt[k] = 0
             else:
                 del self.type_cnt[k]
 
         keys = self.status_cnt.keys()
-        for k in keys:
+        for k in list(keys):
             if self.status_cnt[k] != 0:
                 self.status_cnt[k] = 0
             else:
                 del self.status_cnt[k]
 
         keys = self.reply_cnt.keys()
-        for k in keys:
+        for k in list(keys):
             if self.reply_cnt[k] != 0:
                 self.reply_cnt[k] = 0
             else:
                 del self.reply_cnt[k]
 
         keys = self.client_cnt.keys()
-        for k in keys:
+        for k in list(keys):
             if self.client_cnt[k] != 0:
                 self.client_cnt[k] = 0
             else:
                 del self.client_cnt[k]
 
         keys = self.upstream_cnt.keys()
-        for k in keys:
+        for k in list(keys):
             if self.upstream_cnt[k] != 0:
                 self.upstream_cnt[k] = 0
             else:
