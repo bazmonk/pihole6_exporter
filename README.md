@@ -2,7 +2,8 @@
 
 This is a basic prometheus exporter for the new API in Pi-hole version 6, currently in beta.
 
-[There is a Grafana Dashboard as well!](https://grafana.com/grafana/dashboards/20999-pi-hole-ver6-stats/)
+[There is a Grafana Dashboard as well!](https://grafana.com/grafana/dashboards/21043-pi-hole-ver6-stats/)
+
 
 ## Running
 
