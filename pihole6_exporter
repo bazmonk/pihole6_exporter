@@ -127,7 +127,12 @@ class PiholeCollector(object):
         last_min = int(now) // 60 * 60
         min_before = last_min - 60
 
-        query_url = "https://" + self.host + ":443/api/queries?from=" + str(min_before) + "&until=" + str(last_min)
+        logging.info("last_min: " + str(last_min))
+        logging.info("min_before: " + str(min_before))
+
+
+        query_url = "https://" + self.host + ":443/api/queries?from=" + str(min_before) +\
+                    "&until=" + str(last_min) + "&length=1000000"
         if self.using_auth:
             headers = {"accept": "application/json", "sid": self.sid}
         else:
