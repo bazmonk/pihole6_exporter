@@ -23,6 +23,12 @@ class PiholeCollector(object):
             self.using_auth = True
             self.sid = self.get_sid(key)
 
+        self.type_cnt = {}
+        self.status_cnt = {}
+        self.reply_cnt = {}
+        self.client_cnt = {}
+        self.upstream_cnt = {}
+
     def get_sid(self, key):
         auth_url = "https://" + self.host + ":443/api/auth"
         headers = {"accept": "application/json", "content_type": "application/json"}
@@ -141,11 +147,35 @@ class PiholeCollector(object):
 
         reply = req.json()
 
-        type_cnt = {}
-        status_cnt = {}
-        reply_cnt = {}
-        client_cnt = {}
-        upstream_cnt = {}
+        type_n = {}
+        for k in type_cnt:
+            if type_cnt[k] != 0:
+                type_n[k] = 0
+        type_cnt = type_n
+
+        status_n = {}
+        for k in status_cnt:
+            if status_cnt[k] != 0:
+                status_n[k] = 0
+        status_cnt = status_n
+
+        reply_n = {}
+        for k in reply_cnt:
+            if reply_cnt[k] != 0:
+                reply_n[k] = 0
+        reply_cnt = reply_n
+
+        client_n = {}
+        for k in client_cnt:
+            if client_cnt[k] != 0:
+                client_n[k] = 0
+        client_cnt = client_n
+
+        upstream_n = {}
+        for k in upstream_cnt:
+            if upstream_cnt[k] != 0:
+                upstream_n[k] = 0
+        upstream_cnt = upstream_n
 
         for q in reply["queries"]:
             type = q["type"]
