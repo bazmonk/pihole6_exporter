@@ -25,7 +25,7 @@ The session ID should stay active as long as it is used at least every 5 minutes
 ## Requirements
 
 * Python 3
-* The prometheus_client Python library (on Pi OS: `sudo apt-get install python3-prometheus-client`)
+* The prometheus_client Python library (on Pi/Debian-like OSes: `sudo apt-get install python3-prometheus-client`)
 
 ## Installation
 
@@ -37,7 +37,7 @@ The session ID should stay active as long as it is used at least every 5 minutes
 
 ## Metrics Provided
 
-All metrics derive from the `/stats/summary` and `/stats/upstreams` API calls, minus a few stats which can be derived from these metrics (e.g. the % of domains blocked).
+All metrics derive from the `/stats/summary`, `/stats/upstreams` and `/queries` API calls, minus a few stats which can be derived from these metrics (e.g. the % of domains blocked).
 
 | Metric | Description | Labels |
 |--------|-------------|--------|
