@@ -11,6 +11,7 @@ from prometheus_client import start_http_server
 
 class PiholeCollector(object):
 
+
     def __init__(self, host="localhost", key=None):
 
         self.using_auth = False
@@ -147,35 +148,40 @@ class PiholeCollector(object):
 
         reply = req.json()
 
-        type_n = {}
-        for k in type_cnt:
-            if type_cnt[k] != 0:
-                type_n[k] = 0
-        type_cnt = type_n
+        keys = self.type_cnt.keys()
+        for k in keys:
+            if self.type_cnt[k] != 0:
+                self.type_cnt[k] = 0
+            else:
+                del self.type_cnt[k]
 
-        status_n = {}
-        for k in status_cnt:
-            if status_cnt[k] != 0:
-                status_n[k] = 0
-        status_cnt = status_n
+        keys = self.status_cnt.keys()
+        for k in keys:
+            if self.status_cnt[k] != 0:
+                self.status_cnt[k] = 0
+            else:
+                del self.status_cnt[k]
 
-        reply_n = {}
-        for k in reply_cnt:
-            if reply_cnt[k] != 0:
-                reply_n[k] = 0
-        reply_cnt = reply_n
+        keys = self.reply_cnt.keys()
+        for k in keys:
+            if self.reply_cnt[k] != 0:
+                self.reply_cnt[k] = 0
+            else:
+                del self.reply_cnt[k]
 
-        client_n = {}
-        for k in client_cnt:
-            if client_cnt[k] != 0:
-                client_n[k] = 0
-        client_cnt = client_n
+        keys = self.client_cnt.keys()
+        for k in keys:
+            if self.client_cnt[k] != 0:
+                self.client_cnt[k] = 0
+            else:
+                del self.client_cnt[k]
 
-        upstream_n = {}
-        for k in upstream_cnt:
-            if upstream_cnt[k] != 0:
-                upstream_n[k] = 0
-        upstream_cnt = upstream_n
+        keys = self.upstream_cnt.keys()
+        for k in keys:
+            if self.upstream_cnt[k] != 0:
+                self.upstream_cnt[k] = 0
+            else:
+                del self.upstream_cnt[k]
 
         for q in reply["queries"]:
             type = q["type"]
@@ -184,52 +190,52 @@ class PiholeCollector(object):
             client = q["client"]["ip"]
             upstream = q["upstream"]
 
-            if type in type_cnt: type_cnt[type] += 1
-            else: type_cnt[type] = 1
+            if type in self.type_cnt: self.type_cnt[type] += 1
+            else: self.type_cnt[type] = 1
 
-            if status in status_cnt: status_cnt[status] += 1
-            else: status_cnt[status] = 1
+            if status in self.status_cnt: self.status_cnt[status] += 1
+            else: self.status_cnt[status] = 1
 
-            if replytype in reply_cnt: reply_cnt[replytype] += 1
-            else: reply_cnt[replytype] = 1
+            if replytype in self.reply_cnt: self.reply_cnt[replytype] += 1
+            else: self.reply_cnt[replytype] = 1
 
-            if client in client_cnt: client_cnt[client] += 1
-            else: client_cnt[client] = 1
+            if client in self.client_cnt: self.client_cnt[client] += 1
+            else: self.client_cnt[client] = 1
 
-            if upstream in upstream_cnt: upstream_cnt[upstream] += 1
-            else: upstream_cnt[upstream] = 1
+            if upstream in self.upstream_cnt: self.upstream_cnt[upstream] += 1
+            else: self.upstream_cnt[upstream] = 1
 
         q_type = GaugeMetricFamily("pihole_query_type_1m", "Count of query types (last whole 1m)",
                                    labels=["query_type"])
-        for t in type_cnt.items():
+        for t in self.type_cnt.items():
             q_type.add_metric([t[0]], t[1], last_min)
 
         yield q_type
 
         q_status = GaugeMetricFamily("pihole_query_status_1m", "Count of query status (last whole 1m)",
                                    labels=["query_status"])
-        for s in status_cnt.items():
+        for s in self.status_cnt.items():
             q_status.add_metric([s[0]], s[1], last_min)
 
         yield q_status
 
         q_reply = GaugeMetricFamily("pihole_query_reply_1m", "Count of query reply types (last whole 1m)",
                                    labels=["query_reply"])
-        for r in reply_cnt.items():
+        for r in self.reply_cnt.items():
             q_reply.add_metric([r[0]], r[1], last_min)
 
         yield q_reply
 
         q_client = GaugeMetricFamily("pihole_query_client_1m", "Count of query clients (last whole 1m)",
                                    labels=["query_client"])
-        for c in client_cnt.items():
+        for c in self.client_cnt.items():
             q_client.add_metric([c[0]], c[1], last_min)
 
         yield q_client
 
         q_up = GaugeMetricFamily("pihole_query_upstream_1m", "Count of query upstream destinations (last whole 1m)",
                                    labels=["query_upstream"])
-        for u in upstream_cnt.items():
+        for u in self.upstream_cnt.items():
             q_up.add_metric([str(u[0])], u[1], last_min)
 
         yield q_up
