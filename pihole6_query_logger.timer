@@ -1,0 +1,10 @@
+[Unit]
+Description=Triggers a run of the pihole6 query logger
+Requires=pihole6_query_logger.service
+
+[Timer]
+Unit=pihole6_query_logger.service
+OnCalendar=*-*-* *:*:30
+
+[Install]
+WantedBy=timers.target

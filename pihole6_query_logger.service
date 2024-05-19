@@ -1,0 +1,9 @@
+[Unit]
+Description=Grabs pihole6 query logs for previous minute
+Requires=alloy.service
+Wants=pihole6_query_logger.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pihole6_query_logger -f "/var/log/pihole_api/api.log"
+
