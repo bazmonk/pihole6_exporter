@@ -74,8 +74,7 @@ if __name__ == '__main__':
 
     for query in reversed(mypql.get_last_min_json()["queries"]):
         timestamp = query["time"]
-        dt_obj = datetime.fromtimestamp(timestamp)
-        log_lines.append("" + str(dt_obj) + " " + str(query))
+        log_lines.append(str(timestamp) + " " + str(query))
 
     with open(args.filename, 'a') as f:
         for line in log_lines:
