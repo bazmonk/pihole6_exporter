@@ -9,6 +9,7 @@ from datetime import datetime
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client import start_http_server
 
+
 class PiholeCollector(object):
 
 
@@ -30,6 +31,7 @@ class PiholeCollector(object):
         self.client_cnt = {}
         self.upstream_cnt = {}
 
+
     def get_sid(self, key):
         auth_url = "https://" + self.host + ":443/api/auth"
         headers = {"accept": "application/json", "content_type": "application/json"}
@@ -39,17 +41,60 @@ class PiholeCollector(object):
         reply = req.json()
         return reply['session']['sid']
 
-    def collect(self):
 
-        logging.info("beginning scrape...")
-
-        summary_url = "https://" + self.host + ":443/api/stats/summary"
+    def get_api_call(self, api_path):
+        url = "https://" + self.host + ":443/api/" + api_path
         if self.using_auth:
             headers = {"accept": "application/json", "sid": self.sid}
         else:
             headers = {"accept": "application/json"}
-        req = requests.get(summary_url, verify = False, headers = headers)
-        reply = req.json()
+        req = requests.get(url, verify = False, headers = headers)
+        
+        return req.json()
+
+
+    def clear_cnts(self):
+        keys = self.type_cnt.keys()
+        for k in list(keys):
+            if self.type_cnt[k] != 0:
+                self.type_cnt[k] = 0
+            else:
+                del self.type_cnt[k]
+
+        keys = self.status_cnt.keys()
+        for k in list(keys):
+            if self.status_cnt[k] != 0:
+                self.status_cnt[k] = 0
+            else:
+                del self.status_cnt[k]
+
+        keys = self.reply_cnt.keys()
+        for k in list(keys):
+            if self.reply_cnt[k] != 0:
+                self.reply_cnt[k] = 0
+            else:
+                del self.reply_cnt[k]
+
+        keys = self.client_cnt.keys()
+        for k in list(keys):
+            if self.client_cnt[k] != 0:
+                self.client_cnt[k] = 0
+            else:
+                del self.client_cnt[k]
+
+        keys = self.upstream_cnt.keys()
+        for k in list(keys):
+            if self.upstream_cnt[k] != 0:
+                self.upstream_cnt[k] = 0
+            else:
+                del self.upstream_cnt[k]
+
+
+    def collect(self):
+
+        logging.info("beginning scrape...")
+
+        reply = self.get_api_call("stats/summary")
 
         query_types = GaugeMetricFamily("pihole_query_by_type",
                 "Count of queries by type (24h)", labels=["query_type"])
@@ -110,15 +155,7 @@ class PiholeCollector(object):
 
         yield gravity
 
-
-        summary_url = "https://" + self.host + ":443/api/stats/upstreams"
-        if self.using_auth:
-            headers = {"accept": "application/json", "sid": self.sid}
-        else:
-            headers = {"accept": "application/json"}
-        req = requests.get(summary_url, verify = False, headers = headers)
-
-        reply = req.json()
+        reply = self.get_api_call("stats/upstreams")
         
         upstreams = GaugeMetricFamily("pihole_query_upstream_count",
                 "Total query upstream counts (24h)", labels=["ip", "name", "port"])
@@ -144,40 +181,7 @@ class PiholeCollector(object):
 
         reply = req.json()
 
-        keys = self.type_cnt.keys()
-        for k in list(keys):
-            if self.type_cnt[k] != 0:
-                self.type_cnt[k] = 0
-            else:
-                del self.type_cnt[k]
-
-        keys = self.status_cnt.keys()
-        for k in list(keys):
-            if self.status_cnt[k] != 0:
-                self.status_cnt[k] = 0
-            else:
-                del self.status_cnt[k]
-
-        keys = self.reply_cnt.keys()
-        for k in list(keys):
-            if self.reply_cnt[k] != 0:
-                self.reply_cnt[k] = 0
-            else:
-                del self.reply_cnt[k]
-
-        keys = self.client_cnt.keys()
-        for k in list(keys):
-            if self.client_cnt[k] != 0:
-                self.client_cnt[k] = 0
-            else:
-                del self.client_cnt[k]
-
-        keys = self.upstream_cnt.keys()
-        for k in list(keys):
-            if self.upstream_cnt[k] != 0:
-                self.upstream_cnt[k] = 0
-            else:
-                del self.upstream_cnt[k]
+        self.clear_cnts()
 
         for q in reply["queries"]:
             type = q["type"]
@@ -185,6 +189,11 @@ class PiholeCollector(object):
             replytype = q["reply"]["type"]
             client = q["client"]["ip"]
             upstream = q["upstream"]
+            if upstream == None:
+                if status == "GRAVITY" or status == "CACHE":
+                    upstream = "None-" + status
+                else:
+                    upstream = "None-OTHER"
 
             if type in self.type_cnt: self.type_cnt[type] += 1
             else: self.type_cnt[type] = 1
