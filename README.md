@@ -36,9 +36,24 @@ The session ID should stay active as long as it is used at least every 5 minutes
 * `systemctl start pihole6-exporter` to start the exporter.
 * `systemctl enable pihole6-exporter` to have it start automatically.
 
+## Scraping with Alloy
+
+Grafana Alloy is a popular way of scraping metrics off Raspberry Pi.  If you're using Alloy, add something like this to the end of your `/etc/alloy/config.alloy` file:
+
+```
+prometheus.scrape "pihole6_exporter_scraper" {
+        targets    = [{"__address__" = "127.0.0.1:9666", "instance" = "cairon", "job" = "pihole6_exporter"}]
+        forward_to = [prometheus.remote_write.metrics_service.receiver]
+}
+```
+
+Then restart the alloy service (`systemctl restart alloy`).
+
 ## Metrics Provided
 
 All metrics derive from the `/stats/summary`, `/stats/upstreams` and `/queries` API calls, minus a few stats which can be derived from these metrics (e.g. the % of domains blocked).
+
+These are per-24h metrics provided by the API, like the ones used in the stats on the web admin dashboard.
 
 | Metric | Description | Labels |
 |--------|-------------|--------|
@@ -49,6 +64,11 @@ All metrics derive from the `/stats/summary`, `/stats/upstreams` and `/queries` 
 | `pihole_client_count` | Count of total/active clients | `category` (active, total) |
 | `pihole_domains_being_blocked` | Number of domains being blocked | *None* |
 | `pihole_query_upstream_count` | Counts of total queries in the last 24h by upstream destination | `ip`, `port`, `name` |
+
+These are per-1m metrics.  These can be aggregated over time periods other than just 24h, and in various ways to derive the same stats as above and more.
+
+| Metric | Description | Labels |
+|--------|-------------|--------|
 | `pihole_query_type_1m` | Per-1m count of queries by type | `query_type` |
 | `pihole_query_status_1m` | Per-1m count of queries by status | `query_status` |
 | `pihole_query_upstream_1m` | Per-1m count of queries by upstream destination | `query_upstream` |
