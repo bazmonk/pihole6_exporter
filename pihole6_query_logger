@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import time
 import requests
 import urllib3
 import argparse
 import logging
+import json
 from datetime import datetime
 
 class PiholeQueryLogger(object):
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     for query in reversed(mypql.get_last_min_json()["queries"]):
         timestamp = query["time"]
-        log_lines.append(str(timestamp) + " " + str(query))
+        log_lines.append(str(timestamp) + " " + json.dumps(query))
 
     with open(args.filename, 'a') as f:
         for line in log_lines:
