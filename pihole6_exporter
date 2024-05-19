@@ -171,15 +171,7 @@ class PiholeCollector(object):
         last_min = int(now) // 60 * 60
         min_before = last_min - 60
 
-        query_url = "https://" + self.host + ":443/api/queries?from=" + str(min_before) +\
-                    "&until=" + str(last_min) + "&length=1000000"
-        if self.using_auth:
-            headers = {"accept": "application/json", "sid": self.sid}
-        else:
-            headers = {"accept": "application/json"}
-        req = requests.get(query_url, verify = False, headers = headers)
-
-        reply = req.json()
+        reply = self.get_api_call("queries?from=" + str(min_before) + "&until=" + str(last_min) + "&length=1000000")
 
         self.clear_cnts()
 
@@ -190,7 +182,7 @@ class PiholeCollector(object):
             client = q["client"]["ip"]
             upstream = q["upstream"]
             if upstream == None:
-                if status == "GRAVITY" or status == "CACHE":
+                if status == "GRAVITY" or status == "CACHE" or status == "SPECIAL_DOMAIN":
                     upstream = "None-" + status
                 else:
                     upstream = "None-OTHER"

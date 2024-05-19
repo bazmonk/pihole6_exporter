@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+import time
+import requests
+import urllib3
+import argparse
+import logging
+from datetime import datetime
+
+class PiholeQueryLogger(object):
+
+    def __init__(self, host="localhost", key=None):
+
+        self.using_auth = False
+        # Disable if you've actually got a good cert set up.
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        self.host = host
+
+        if key is not None:
+            self.using_auth = True
+            self.sid = self.get_sid(key)
+
+    def get_sid(self, key):
+        auth_url = "https://" + self.host + ":443/api/auth"
+        headers = {"accept": "application/json", "content_type": "application/json"}
+        json_data = {"password": key}
+        req = requests.post(auth_url, verify = False, headers = headers, json = json_data)
+        
+        reply = req.json()
+        return reply['session']['sid']
+
+    def get_api_call(self, api_path):
+        url = "https://" + self.host + ":443/api/" + api_path
+        if self.using_auth:
+            headers = {"accept": "application/json", "sid": self.sid}
+        else:
+            headers = {"accept": "application/json"}
+        req = requests.get(url, verify = False, headers = headers)
+        
+        return req.json()
+
+
+    def get_last_min_json(self):
+
+        logging.info("beginning log cycle...")
+
+        now = datetime.now().strftime("%s")
+        last_min = int(now) // 60 * 60
+        min_before = last_min - 60
+
+        reply = self.get_api_call("queries?from=" + str(min_before) + "&until=" + str(last_min) + "&length=1000000")
+
+        return reply
+        
+
+if __name__ == '__main__':
+    
+    logging.basicConfig(format='level="%(levelname)s" message="%(message)s"', level=logging.INFO)
+
+    parser = argparse.ArgumentParser(description="Prometheus exporter for Pi-hole version 6+")
+
+    parser.add_argument("-H", "--host", dest="host", type=str, required=False, help="hostname/ip of pihole instance (default localhost)", default="localhost")
+    parser.add_argument("-k", "--key", dest="key", type=str, required=False, help="authentication token (if required)", default=None)
+    parser.add_argument("-f", "--file", dest="filename", type=str, required=True, help="log output filename")
+
+    args = parser.parse_args()
+
+    logging.info("Ready to fetch query logs")
+    
+    mypql = PiholeQueryLogger(args.host, args.key)
+
+    log_lines = []
+
+    for query in reversed(mypql.get_last_min_json()["queries"]):
+        timestamp = query["time"]
+        dt_obj = datetime.fromtimestamp(timestamp)
+        log_lines.append("" + str(dt_obj) + " " + str(query))
+
+    with open(args.filename, 'a') as f:
+        for line in log_lines:
+            f.write(line + "\n")
+    
+    logging.info("Logs appended")
