@@ -1,0 +1,21 @@
+loki.source.file "logs_pihole_api_queries" {
+    targets    = [{__path__ = "/var/log/pihole_api/api.log", job = "pihole_api_queries"}]
+    forward_to = [loki.process.logs_pihole_api_queries_process.receiver]
+}
+
+loki.process "logs_pihole_api_queries_process" {
+    forward_to = [loki.write.grafana_cloud_loki.receiver]
+
+    stage.regex {
+        expression = "^(?P<tstamp>\\S+?) (?P<content>.*)$"
+    }
+
+    stage.timestamp {
+        source = "tstamp"
+        format = "Unix"
+    }
+
+    stage.output {
+        source = "content"
+    }
+}
