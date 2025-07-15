@@ -179,7 +179,10 @@ class PiholeCollector(object):
             type = q["type"]
             status = q["status"]
             replytype = q["reply"]["type"]
-            client = q["client"]["ip"]
+            cli_obj = q["client"]
+            name    = cli_obj.get("name")
+            ip_addr = cli_obj["ip"]
+            client  = f"{name} ({ip_addr})" if name else ip_addr
             upstream = q["upstream"]
             if upstream == None:
                 if status == "GRAVITY" or status == "CACHE" or status == "SPECIAL_DOMAIN":
